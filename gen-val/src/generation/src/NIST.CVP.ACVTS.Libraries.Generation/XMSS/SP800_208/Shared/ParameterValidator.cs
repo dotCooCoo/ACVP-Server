@@ -29,6 +29,10 @@ public class ParameterValidator : ParameterValidatorBase, IParameterValidator<Pa
         ValidateCapabilities(parameters.Capabilities, errors);
 
         ValidateDomain(parameters.MessageLength, errors, "MessageLength", MIN_MESSAGE_LENGTH, MAX_MESSAGE_LENGTH);
+        if (parameters.MessageLength != null)
+        {
+            ValidateMultipleOf(parameters.MessageLength, errors, 8, "complete byte messages");
+        }
 
         return new ParameterValidateResponse(errors);
     }

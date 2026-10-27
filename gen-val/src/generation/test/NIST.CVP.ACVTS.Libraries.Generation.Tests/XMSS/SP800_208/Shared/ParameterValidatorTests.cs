@@ -118,5 +118,31 @@ namespace NIST.CVP.ACVTS.Libraries.Generation.Tests.XMSS.SP800_208.Shared
             var result = _subject.Validate(p);
             Assert.That(result.Success, Is.EqualTo(expectedSuccess), result.ErrorMessage);
         }
+
+        [Test]
+        [TestCase(9, false)]
+        [TestCase(1023, false)]
+        [TestCase(1024, true)]
+        public void WhenGivenMessageLength_ShouldRequireCompleteBytes(int messageLength, bool expectedSuccess)
+        {
+            var pb = new ParameterBuilder()
+                .WithMessageLength(new MathDomain().AddSegment(new ValueDomainSegment(messageLength)));
+            var p = pb.Build();
+            var result = _subject.Validate(p);
+            Assert.That(result.Success, Is.EqualTo(expectedSuccess), result.ErrorMessage);
+        }
+
+        [Test]
+        [TestCase(8, 65536, 8, true)]
+        [TestCase(8, 65536, 1, false)]
+        [TestCase(12, 65532, 8, false)]
+        public void WhenGivenMessageLengthRange_ShouldRequireCompleteBytes(int min, int max, int increment, bool expectedSuccess)
+        {
+            var pb = new ParameterBuilder()
+                .WithMessageLength(new MathDomain().AddSegment(new RangeDomainSegment(null, min, max, increment)));
+            var p = pb.Build();
+            var result = _subject.Validate(p);
+            Assert.That(result.Success, Is.EqualTo(expectedSuccess), result.ErrorMessage);
+        }
     }
 }
