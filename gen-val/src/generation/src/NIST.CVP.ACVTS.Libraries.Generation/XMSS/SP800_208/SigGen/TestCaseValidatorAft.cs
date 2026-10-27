@@ -88,9 +88,14 @@ public class TestCaseValidatorAft : ITestCaseValidatorAsync<TestGroup, TestCase>
 
     private void ValidatePrivateKeyUniqueness(TestCase suppliedResult, List<string> errors)
     {
+        if (suppliedResult.Signature.BitLength < 32)
+        {
+            return;
+        }
+
         foreach (var testCase in suppliedResult.ParentGroup.Tests)
         {
-            if (suppliedResult.TestCaseId == testCase.TestCaseId)
+            if (suppliedResult.TestCaseId == testCase.TestCaseId || testCase.Signature == null || testCase.Signature.BitLength < 32)
             {
                 continue;
             }

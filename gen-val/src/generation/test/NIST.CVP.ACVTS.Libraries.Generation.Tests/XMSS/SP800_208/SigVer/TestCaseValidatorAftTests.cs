@@ -39,4 +39,20 @@ public class TestCaseValidatorAftTests
         Assert.That(result.Expected, Is.Not.Null);
         Assert.That(result.Provided, Is.Not.Null);
     }
+
+    [Test]
+    public async Task ValidateAsync_MissingResult_ReturnsFailed()
+    {
+        // Arrange
+        var expected = new TestCase { TestCaseId = 1, TestPassed = true };
+        var supplied = new TestCase { TestCaseId = 1, TestPassed = null };
+        var validator = new TestCaseValidatorAft(expected);
+
+        // Act
+        var result = await validator.ValidateAsync(supplied);
+
+        // Assert
+        Assert.That(result.Result, Is.EqualTo(NIST.CVP.ACVTS.Libraries.Generation.Core.Enums.Disposition.Failed));
+        Assert.That(result.Reason, Does.Contain("Could not find TestPassed"));
+    }
 }

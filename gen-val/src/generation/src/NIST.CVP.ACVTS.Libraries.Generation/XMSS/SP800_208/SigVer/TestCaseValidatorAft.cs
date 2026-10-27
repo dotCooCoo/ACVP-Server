@@ -19,6 +19,16 @@ public class TestCaseValidatorAft : ITestCaseValidatorAsync<TestGroup, TestCase>
 
     public Task<TestCaseValidation> ValidateAsync(TestCase suppliedResult, bool showExpected = false)
     {
+        if (suppliedResult.TestPassed == null)
+        {
+            return Task.FromResult(new TestCaseValidation
+            {
+                TestCaseId = suppliedResult.TestCaseId,
+                Result = Disposition.Failed,
+                Reason = $"Could not find {nameof(suppliedResult.TestPassed)}"
+            });
+        }
+
         if (_expectedResult.TestPassed != suppliedResult.TestPassed)
         {
             var expected = new Dictionary<string, string>

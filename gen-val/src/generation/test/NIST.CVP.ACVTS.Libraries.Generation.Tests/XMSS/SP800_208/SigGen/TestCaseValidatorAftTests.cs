@@ -146,6 +146,31 @@ public class TestCaseValidatorAftTests
     }
 
     [Test]
+    [TestCase(null)]
+    [TestCase("AABB")]
+    public async Task ValidateAsync_SiblingSignatureMissingOrShort_ReturnsPassed(string siblingSignatureHex)
+    {
+        // Arrange
+        var supplied = new TestCase { TestCaseId = 1, Signature = new BitString("AABBCCDD11223344") };
+        supplied.ParentGroup = new TestGroup
+        {
+            PublicKey = new BitString(PublicKeyHex),
+            Tests = { supplied, new TestCase { TestCaseId = 2, Signature = siblingSignatureHex == null ? null : new BitString(siblingSignatureHex) } }
+        };
+
+        var validator = new TestCaseValidatorAft(_expectedResult, _group, _mockResolver.Object);
+
+        _mockResolver.Setup(r => r.CompleteDeferredCryptoAsync(_group, _expectedResult, supplied))
+            .ReturnsAsync(new XmssVerificationResult());
+
+        // Act
+        var result = await validator.ValidateAsync(supplied);
+
+        // Assert
+        Assert.That(result.Result, Is.EqualTo(Core.Enums.Disposition.Passed));
+    }
+
+    [Test]
     public async Task ValidateAsync_UniquePrivateKey_ReturnsPassed()
     {
         // Arrange
