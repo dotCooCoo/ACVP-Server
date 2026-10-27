@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using NIST.CVP.ACVTS.Libraries.Common.Helpers;
 using NIST.CVP.ACVTS.Libraries.Crypto.Common.Asymmetric.XMSS.Native;
+using NIST.CVP.ACVTS.Libraries.Crypto.Common.Asymmetric.XMSS.Native.Helpers;
 using NIST.CVP.ACVTS.Libraries.Generation.Core;
 using NIST.CVP.ACVTS.Libraries.Generation.Core.Async;
 
@@ -30,6 +32,11 @@ public class TestCaseValidatorAft : ITestCaseValidatorAsync<TestGroup, TestCase>
         ValidateResultPresent(suppliedResult, errors);
         if (errors.Count == 0)
         {
+            ValidatePublicKeyMode(suppliedResult, errors);
+        }
+
+        if (errors.Count == 0)
+        {
             ValidatePrivateKeyUniqueness(suppliedResult, errors);
             await CheckResults(suppliedResult, errors, expected, provided);
         }
@@ -54,6 +61,28 @@ public class TestCaseValidatorAft : ITestCaseValidatorAsync<TestGroup, TestCase>
         if (suppliedResult.Signature == null)
         {
             errors.Add("Could not find signature");
+        }
+    }
+
+    private void ValidatePublicKeyMode(TestCase suppliedResult, List<string> errors)
+    {
+        var publicKey = suppliedResult.ParentGroup.PublicKey;
+        if (publicKey == null)
+        {
+            errors.Add("Could not find public key");
+            return;
+        }
+
+        if (publicKey.BitLength < 32)
+        {
+            errors.Add("Public key provided was not the correct size");
+            return;
+        }
+
+        var oid = publicKey.GetMostSignificantBits(32);
+        if (AttributesHelper.GetXmssModeFromTypeCode(oid.ToBytes()) != _group.XmssMode)
+        {
+            errors.Add($"Public key OID {oid.ToHex()} does not match the XMSS mode {EnumHelpers.GetEnumDescriptionFromEnum(_group.XmssMode)}");
         }
     }
 
